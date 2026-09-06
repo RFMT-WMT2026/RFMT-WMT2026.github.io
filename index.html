@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="description" content="RFMT at WMT 2026 General Translation Task: document-level Japanese machine translation with CAJALA, DPO, MBR decoding, and FIM post-editing.">
+  <meta name="keywords" content="RFMT, WMT 2026, machine translation, CAJALA, Japanese, FIM, DPO, MBR">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RFMT at WMT 2026 General Translation Task</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/js/all.min.js"></script>
+</head>
+
+<body>
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column has-text-centered">
+            <h1 class="title is-1 publication-title publication-brand">
+              <img class="publication-logo" src="assets/RFMT_logo.png" width="800" height="592" alt="">
+              <span>RFMT</span>
+            </h1>
+            <h3 class="title is-3 publication-title">at WMT 2026 General Translation Task</h3>
+            <h5 class="subtitle is-5 publication-awards">WMT2026</h5>
+
+            <div class="is-size-5 publication-authors">
+              <span class="author-block">
+                <a href="https://ryosukematsuda.github.io/" target="_blank" rel="noreferrer" style="text-decoration: underline;">Ryosuke Matsuda<sup>1</sup></a>,
+              </span>
+              <span class="author-block">
+                Keito Kudo<sup>1,2</sup>,
+              </span>
+              <span class="author-block">
+                Ryo Fujii<sup>1,3</sup>,
+              </span>
+              <span class="author-block">
+                Takumi Ito<sup>1,4</sup>,
+              </span>
+              <span class="author-block">
+                Makoto Morishita<sup>1,3</sup>,
+              </span>
+              <span class="author-block">
+                Jun Suzuki<sup>1,2</sup>
+              </span>
+            </div>
+
+            <div id="authors" class="is-size-5 publication-authors">
+              <span class="author-block"><b style="color:#008AD7; font-weight:normal">1. </b>Tohoku University</span>
+              &nbsp;&nbsp;
+              <span class="author-block"><b style="color:#008AD7; font-weight:normal">2. </b>RIKEN</span>
+              &nbsp;&nbsp;
+              <span class="author-block"><b style="color:#008AD7; font-weight:normal">3. </b>Future Corporation</span>
+              &nbsp;&nbsp;
+              <span class="author-block"><b style="color:#008AD7; font-weight:normal">4. </b>Machine Learning Solutions</span>
+            </div>
+
+            <div class="column has-text-centered">
+              <div class="publication-links">
+                <span class="link-block">
+                  <button type="button" class="external-link button is-normal is-rounded is-dark" disabled>
+                    <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                    </span>
+                    <span>arXiv</span>
+                  </button>
+                </span>
+                <span class="link-block">
+                  <a href="https://huggingface.co/datasets/tohoku-nlp/CAJALA" class="external-link button is-normal is-rounded is-dark" target="_blank" rel="noreferrer">
+                    <span>🤗 Dataset</span>
+                  </a>
+                </span>
+                <span class="link-block">
+                  <a href="https://huggingface.co/tohoku-nlp/RFMT" class="external-link button is-normal is-rounded is-dark" target="_blank" rel="noreferrer">
+                    <span>🤗 Model</span>
+                  </a>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Abstract -->
+  <section class="section" id="abstract">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-six-fifths">
+          <h2 class="title is-3">Abstract</h2>
+        </div>
+      </div>
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column is-full-width">
+            <div class="content has-text-justified">
+              <p>
+                We participated in the constrained (open-weight) track of the WMT 2026 General Machine Translation
+                Task for the English-to-Japanese and Simplified Chinese-to-Japanese directions.
+                Our system builds on Marco-MT-Algharb, a strong open-weight translation model from the previous WMT
+                General MT task. We further fine-tuned this model to generate more natural Japanese translations.
+                To this end, we constructed a <b class="dnerf">Context-Aware Japanese Linguistic Acceptability dataset (CAJALA)</b>.
+                During annotation, human annotators were shown multiple paraphrased variants of a segment within its
+                document-level context and asked to select the most natural one.
+                We then back-translated the CAJALA dataset to create parallel data for Direct Preference Optimization
+                (DPO).
+                We also trained the model to perform fill-in-the-middle (FIM) translation, in which the model
+                reconstructs target-side segments from their surrounding document.
+                At inference, we use Minimum Bayes Risk (MBR) decoding, followed by selective FIM post-editing of
+                low-quality segments.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- System Overview -->
+  <section class="section" id="overview">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-six-fifths">
+        <h2 class="title is-3">System Overview</h2>
+      </div>
+    </div>
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column is-full-width">
+          <div class="content has-text-justified">
+            <p>
+              Our system builds on ATH-MaaS/Marco-MT-Algharb, which we fine-tuned to specialize in Japanese
+              translation and to support FIM translation.
+              Furthermore, we trained it to accept auxiliary information via prompting, such as the source domain,
+              target styles (e.g., polite or plain forms), and glossary entries.
+            </p>
+            <p>Our inference pipeline consists of four stages:</p>
+            <ul>
+              <li><b>Stage 1: Preprocessing.</b> We identify the domain, segment the text, and parse inputs in JSON or HTML formats.</li>
+              <li><b>Stage 2: Translation.</b> We translate the document segment by segment using MBR decoding.</li>
+              <li><b>Stage 3: FIM Post-editing.</b> We detect low-quality segments and retranslate them using FIM translation.</li>
+              <li><b>Stage 4: Post-processing.</b> We reconstruct the document and restore its original format.</li>
+            </ul>
+          </div>
+          <div style="text-align: center;">
+            <img id="system-overview" width="80%" src="assets/system-overview.png" alt="Overview of CAJALA dataset construction, model adaptation, and RFMT inference.">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CAJALA Dataset -->
+  <section class="section" id="cajala">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-six-fifths">
+        <h2 class="title is-3">CAJALA Dataset</h2>
+      </div>
+    </div>
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column is-full-width">
+          <div class="content has-text-justified">
+            <p>
+              CAJALA is a dataset that annotates the acceptability of segments within Japanese documents.
+              Specifically, we collect human preferences based on the naturalness and consistency of Japanese
+              expressions within document-level contexts.
+              Each sample consists of a Japanese document and three variants of one segment: the original segment
+              from an existing corpus and two paraphrases generated by LLMs.
+            </p>
+            <p>
+              To construct the dataset, we used crowdsourcing.
+              We showed human annotators three segment variations (the two paraphrases and the original text)
+              alongside their surrounding context.
+              We then asked the annotators to select the variation that best fits the overall flow of the document.
+            </p>
+            <p>
+              We obtained the original Japanese documents from a subset of the <code>ja_fineweb-2</code> split in the
+              llm-jp-corpus-v4.
+              We used an LLM to classify these documents by domain and retained samples identified as News, SNS, or
+              Literature.
+              We used an LLM-as-a-judge to identify segments that allowed meaningful alternative expressions and
+              retained them for crowdsourcing.
+            </p>
+          </div>
+          <h4 class="title is-4">Annotation Examples</h4>
+          <div class="content has-text-justified">
+            <p>
+              Each example below contains three valid responses, and one candidate received all three votes.
+              Compare the three candidate segments alongside their surrounding document context.
+              The vote counts show the annotators’ preferences. Expand the context to read the full text,
+              or highlight changes from Original to inspect differences in wording.
+            </p>
+          </div>
+          <div id="cajala-examples" class="cajala-examples" aria-live="polite">
+            <p class="has-text-centered">Loading CAJALA examples...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Paraphrase Generation and Human Annotation -->
+  <section class="section" id="annotation">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-six-fifths">
+        <h2 class="title is-3">Paraphrase Generation and Human Annotation</h2>
+      </div>
+    </div>
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column is-full-width">
+          <div class="content has-text-justified">
+            <p>
+              We generated candidate segments by instructing LLMs to paraphrase the original Japanese expressions
+              into more natural alternatives.
+              We used <code>Qwen3.5-397B-A17B-FP8</code> and <code>gpt-oss-120b</code> for this task.
+              These two generated paraphrases and the original segment formed the three candidates.
+            </p>
+            <p>
+              During human annotation, we presented these three segment variations with the same surrounding context
+              and asked annotators to select the most acceptable segment.
+              We instructed them to consider the acceptability of each candidate and its consistency in style and
+              terminology with the surrounding context.
+            </p>
+            <p>
+              All human annotations were collected through Yahoo! Crowdsourcing.
+              A total of 2,048 unique workers participated in the annotation project.
+              We progressively selected workers over multiple rounds based on a worker quality score computed from
+              their responses and annotation behavior.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dataset Statistics -->
+  <section class="section" id="dataset-statistics">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-six-fifths">
+        <h2 class="title is-3">Dataset Statistics</h2>
+      </div>
+    </div>
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column is-full-width">
+          <div class="content has-text-justified">
+            <p>
+              We collected <b>7,345 unique samples</b>, each evaluated by up to three annotators.
+              The selection rates below are based on a total of <b>20,248 valid responses</b> in the public release.
+            </p>
+          </div>
+          <div class="statistics-charts">
+            <figure class="statistics-chart">
+              <figcaption><h3>Valid Annotators per Sample</h3><p>Share of 7,345 samples</p></figcaption>
+              <div class="statistics-axis" aria-hidden="true"><span>0</span><span>100%</span></div>
+              <ul>
+                <li>
+                  <div class="statistics-label"><span>1 annotator</span><span><strong>1.70%</strong> <small>(125)</small></span></div>
+                  <div class="statistics-track" aria-hidden="true"><span style="width: 1.7%"></span></div>
+                </li>
+                <li>
+                  <div class="statistics-label"><span>2 annotators</span><span><strong>20.93%</strong> <small>(1,537)</small></span></div>
+                  <div class="statistics-track" aria-hidden="true"><span style="width: 20.93%"></span></div>
+                </li>
+                <li>
+                  <div class="statistics-label"><span>3 annotators</span><span><strong>77.37%</strong> <small>(5,683)</small></span></div>
+                  <div class="statistics-track" aria-hidden="true"><span style="width: 77.37%"></span></div>
+                </li>
+              </ul>
+            </figure>
+            <figure class="statistics-chart">
+              <figcaption><h3>Candidate Selections</h3><p>Share of 20,248 valid responses</p></figcaption>
+              <div class="statistics-axis" aria-hidden="true"><span>0</span><span>100%</span></div>
+              <ul>
+                <li>
+                  <div class="statistics-label"><span>human</span><span><strong>33.29%</strong> <small>(6,741)</small></span></div>
+                  <div class="statistics-track" aria-hidden="true"><span style="width: 33.29%"></span></div>
+                </li>
+                <li>
+                  <div class="statistics-label"><span>Qwen</span><span><strong>35.12%</strong> <small>(7,111)</small></span></div>
+                  <div class="statistics-track" aria-hidden="true"><span style="width: 35.12%"></span></div>
+                </li>
+                <li>
+                  <div class="statistics-label"><span>gpt-oss</span><span><strong>31.59%</strong> <small>(6,396)</small></span></div>
+                  <div class="statistics-track" aria-hidden="true"><span style="width: 31.59%"></span></div>
+                </li>
+              </ul>
+            </figure>
+            <figure class="statistics-chart">
+              <figcaption><h3>Domains</h3><p>Number of samples</p></figcaption>
+              <div class="statistics-axis" aria-hidden="true"><span>0</span><span>4,000</span></div>
+              <ul>
+                <li>
+                  <div class="statistics-label"><span>News</span><span><strong>2,212</strong></span></div>
+                  <div class="statistics-track" aria-hidden="true"><span style="width: 55.3%"></span></div>
+                </li>
+                <li>
+                  <div class="statistics-label"><span>SNS</span><span><strong>3,645</strong></span></div>
+                  <div class="statistics-track" aria-hidden="true"><span style="width: 91.125%"></span></div>
+                </li>
+                <li>
+                  <div class="statistics-label"><span>Literature</span><span><strong>1,492</strong></span></div>
+                  <div class="statistics-track" aria-hidden="true"><span style="width: 37.3%"></span></div>
+                </li>
+              </ul>
+            </figure>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Synthetic Dataset -->
+  <section class="section" id="synthetic-dataset">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-six-fifths">
+        <h2 class="title is-3">Synthetic Dataset</h2>
+      </div>
+    </div>
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column is-full-width">
+          <div class="content has-text-justified">
+            <p>
+              We constructed synthetic parallel data to adapt the model for translation into Japanese.
+              For these monolingual corpora, we used the llm-jp-corpus-v4, alongside transcriptions from the Japanese
+              subsets of CC Audio and YODAS2.
+            </p>
+            <p>
+              We performed domain identification, noise removal, back-translation, cleaning, terminology extraction,
+              and style identification.
+              We also constructed a dictionary of terms specifically for glossary prompting.
+              It consists of a large number of word-level parallel pairs, primarily targeting low-frequency and
+              domain-specific terms.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Model Adaptation -->
+  <section class="section" id="model-adaptation">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-six-fifths">
+        <h2 class="title is-3">Model Adaptation</h2>
+      </div>
+    </div>
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column is-full-width">
+          <div class="content has-text-justified">
+            <p>
+              As our base model, we used Marco-MT-Algharb, which ranked first in the English-to-Japanese constrained
+              track of the WMT 2025 General MT Task.
+              Starting from this model, we first conducted supervised fine-tuning (SFT) on synthetic translation data
+              to specialize it for Japanese translation and train it to follow various prompting strategies.
+              We then performed direct preference optimization (DPO) using additional synthetic preference data and
+              CAJALA to improve translation quality.
+              In parallel, we included FIM training, in which the model reconstructs a missing target-side segment
+              from its surrounding context.
+            </p>
+
+            <h4 class="title is-4">Supervised Fine-tuning</h4>
+            <p>
+              Starting from Marco-MT-Algharb, we performed additional training using the back-translation dataset
+              constructed from the monolingual corpora.
+            </p>
+
+            <h4 class="title is-4">Preference Learning</h4>
+            <p>We performed DPO in two stages using different datasets.</p>
+
+            <h5 class="title is-5">Stage 1.</h5>
+            <p>
+              We trained the model on a mixture of three types of preference data.
+              For <b>LLM-as-a-judge preferences</b>, we used <code>gemma-4-31B-it</code> to compare the output of a
+              model under development with the reference provided in the dataset.
+              We defined the translation judged as higher quality by the LLM as the chosen response, and the other as
+              the rejected response.
+              For <b>synthetic repetition</b>, we artificially added repetition to the reference and used the modified
+              version as the rejected response and the original reference as the chosen response.
+              For <b>synthetic untranslated content</b>, we replaced part of the reference suffix with the corresponding
+              suffix from the source text.
+              The modified version was used as the rejected response, and the original reference was used as the
+              chosen response.
+            </p>
+
+            <h5 class="title is-5">Stage 2.</h5>
+            <p>
+              We trained the model on the back-translated CAJALA dataset.
+              We defined the chosen and rejected responses as the documents containing segments judged as more
+              acceptable by two or more annotators and by fewer than two annotators, respectively.
+              To construct the training pairs, we back-translated the chosen responses into English and Chinese to
+              serve as the source sentences.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FIM Translation Training -->
+  <section class="section" id="fim-translation">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-six-fifths">
+        <h2 class="title is-3">FIM Translation Training</h2>
+      </div>
+    </div>
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column is-full-width">
+          <div class="content has-text-justified">
+            <p>
+              Inspired by FIM training, we use FIM to enable localized post-editing while preserving document context.
+              During training, we omit a target-side segment and train the model to reconstruct it from the
+              corresponding source-side segment and both preceding and following target-side context.
+              Unlike standard left-to-right decoding, which only conditions on preceding target context, FIM
+              translation allows the model to revise a specific segment using context on both sides without
+              regenerating the surrounding translation.
+            </p>
+            <p>
+              For each training sample, we randomly selected one segment from the source document and enclosed it with
+              the special tokens <code>&lt;|fim_start|&gt;</code> and <code>&lt;|fim_end|&gt;</code>.
+              We then provided the target document in which the target-side segment corresponding to the selected
+              source-side segment was replaced with <code>&lt;|fim_skip|&gt;</code> as the first Assistant response.
+              The omitted target-side segment was provided as the second Assistant response.
+            </p>
+            <p>
+              At inference time, we replace the target-side segment to be retranslated with
+              <code>&lt;|fim_skip|&gt;</code> and provide the resulting incomplete target document together with the
+              source document.
+              We then prompt the model to generate the missing target-side segment.
+              This format trains the model to reconstruct a missing target-side segment from its surrounding target-side
+              context.
+            </p>
+            <pre><code>Source document:  ... &lt;|fim_start|&gt; source segment &lt;|fim_end|&gt; ...
+Target document:  ... preceding target context &lt;|fim_skip|&gt; following target context ...
+Generated segment: target-side segment reconstructed from both sides of the context</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Inference -->
+  <section class="section" id="inference">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-six-fifths">
+        <h2 class="title is-3">Inference</h2>
+      </div>
+    </div>
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column is-full-width">
+          <div class="content has-text-justified">
+            <p>
+              For each source document, we perform three preprocessing steps: segment splitting (parsing structured
+              input), domain identification, and style identification.
+              These steps enable segment-level translation and allow us to incorporate auxiliary information into the
+              prompts during inference.
+            </p>
+          </div>
+          <div class="table-scroll">
+            <table class="aspect-table">
+              <thead>
+                <tr>
+                  <th>Stage</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><b>Stage 1</b></td><td><b>Preprocessing.</b> We identify the domain, segment the text, and parse inputs in JSON or HTML formats.</td></tr>
+                <tr><td><b>Stage 2</b></td><td><b>Translation.</b> We translate the document segment by segment using MBR decoding.</td></tr>
+                <tr><td><b>Stage 3</b></td><td><b>FIM Post-editing.</b> We detect low-quality segments and retranslate them using FIM translation.</td></tr>
+                <tr><td><b>Stage 4</b></td><td><b>Post-processing.</b> We reconstruct the document and restore its original format.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Experiments -->
+  <section class="section" id="experiments">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-six-fifths">
+        <h2 class="title is-3">Experiments</h2>
+      </div>
+    </div>
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column is-full-width">
+          <h4 class="title is-4">Evaluation Metrics</h4>
+          <div class="content has-text-justified">
+            <p>
+              We evaluated the systems on the WMT 2026 blind test set.
+              We evaluated translation quality using an LLM-as-a-judge.
+              Specifically, we employed Gemini 3.1 Pro Preview, the latest model in the Gemini family.
+              We provided the source text and the hypothesis as input and asked the model to assign an integer score
+              from 0 to 100.
+              We then averaged the scores over all samples to obtain the mean score for each language pair and system.
+            </p>
+          </div>
+
+          <h4 class="title is-4">Results and Analysis</h4>
+          <div class="content has-text-justified">
+            <p>
+              The table reports the LLM-as-a-judge evaluation results for Base, SFT, DPO Stage 1, DPO Stage 2,
+              DPO Stage 2 with MBR decoding, and our final RFMT system.
+              These configurations are cumulative, with each configuration adding a training or inference component
+              to the preceding one.
+              For RFMT, we re-evaluated the four English-to-Japanese outputs changed by FIM post-editing and
+              recomputed the overall score while retaining the original scores for all other samples.
+              Values are reported as the mean ± 95% CI.
+            </p>
+          </div>
+
+          <p class="table-reading-hint">Scroll horizontally to view all scores. System names remain visible.</p>
+          <div class="results-table-wrapper" tabindex="0" role="region" aria-label="Evaluation results — scroll horizontally to view all scores">
+            <table class="results-table">
+              <thead>
+                <tr>
+                  <th rowspan="2" style="text-align:left; padding-left:14px; vertical-align:middle;">System</th>
+                  <th colspan="2" class="group-header group-header-vq" style="text-align:center;">Model Adaptation</th>
+                  <th colspan="2" class="group-header group-header-vtc" style="text-align:center;">Inference</th>
+                  <th colspan="5" class="group-header group-header-vq" style="text-align:center;">Score ↑</th>
+                </tr>
+                <tr>
+                  <th class="col-vq">SFT</th>
+                  <th class="col-vq">DPO</th>
+                  <th class="col-vtc">MBR</th>
+                  <th class="col-vtc">FIM</th>
+                  <th class="col-vq">JSON</th>
+                  <th class="col-vq">News</th>
+                  <th class="col-vq">Social</th>
+                  <th class="col-vq">Speech</th>
+                  <th class="col-vq">Overall</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="category-row"><td colspan="10">English-to-Japanese</td></tr>
+                <tr>
+                  <td class="system-name-indented">Base</td>
+                  <td></td><td></td><td></td><td></td>
+                  <td>87.9<sub>±4.6</sub></td><td>48.1<sub>±9.6</sub></td><td>55.7<sub>±5.3</sub></td><td>65.5<sub>±3.4</sub></td><td>62.9<sub>±2.9</sub></td>
+                </tr>
+                <tr>
+                  <td class="system-name-indented">SFT</td>
+                  <td class="check">✓</td><td></td><td></td><td></td>
+                  <td>56.9<sub>±13.5</sub></td><td>44.4<sub>±5.5</sub></td><td>46.5<sub>±6.5</sub></td><td>59.0<sub>±4.0</sub></td><td>55.2<sub>±3.2</sub></td>
+                </tr>
+                <tr>
+                  <td class="system-name-indented">DPO-1</td>
+                  <td class="check">✓</td><td class="check">✓</td><td></td><td></td>
+                  <td>85.0<sub>±11.7</sub></td><td>68.2<sub>±9.8</sub></td><td>68.8<sub>±6.1</sub></td><td>73.0<sub>±3.6</sub></td><td>72.2<sub>±2.9</sub></td>
+                </tr>
+                <tr>
+                  <td class="system-name-indented">DPO-2</td>
+                  <td class="check">✓</td><td class="check">✓</td><td></td><td></td>
+                  <td>77.1<sub>±8.6</sub></td><td>66.6<sub>±7.8</sub></td><td>66.3<sub>±5.9</sub></td><td>72.9<sub>±3.6</sub></td><td>71.1<sub>±2.8</sub></td>
+                </tr>
+                <tr>
+                  <td class="system-name-indented">DPO-2+MBR</td>
+                  <td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td></td>
+                  <td>86.9<sub>±8.3</sub></td><td>67.4<sub>±7.3</sub></td><td>69.6<sub>±6.0</sub></td><td>72.3<sub>±3.5</sub></td><td>71.9<sub>±2.9</sub></td>
+                </tr>
+                <tr class="ours-row">
+                  <td class="system-name">RFMT <b>(ours)</b></td>
+                  <td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td>
+                  <td>86.9<sub>±8.3</sub></td><td>67.4<sub>±7.3</sub></td><td>70.4<sub>±5.8</sub></td><td>72.3<sub>±3.5</sub></td><td>72.1<sub>±2.8</sub></td>
+                </tr>
+                <tr class="category-row"><td colspan="10">Simplified Chinese-to-Japanese</td></tr>
+                <tr>
+                  <td class="system-name-indented">Base</td>
+                  <td></td><td></td><td></td><td></td>
+                  <td>—</td><td>12.6<sub>±5.5</sub></td><td>26.5<sub>±4.4</sub></td><td>49.5<sub>±4.6</sub></td><td>38.4<sub>±3.7</sub></td>
+                </tr>
+                <tr>
+                  <td class="system-name-indented">SFT</td>
+                  <td class="check">✓</td><td></td><td></td><td></td>
+                  <td>—</td><td>67.3<sub>±6.9</sub></td><td>41.5<sub>±5.1</sub></td><td>47.4<sub>±4.5</sub></td><td>48.9<sub>±3.3</sub></td>
+                </tr>
+                <tr>
+                  <td class="system-name-indented">DPO-1</td>
+                  <td class="check">✓</td><td class="check">✓</td><td></td><td></td>
+                  <td>—</td><td>73.5<sub>±8.0</sub></td><td>48.0<sub>±5.6</sub></td><td>63.9<sub>±4.3</sub></td><td>61.5<sub>±3.4</sub></td>
+                </tr>
+                <tr>
+                  <td class="system-name-indented">DPO-2</td>
+                  <td class="check">✓</td><td class="check">✓</td><td></td><td></td>
+                  <td>—</td><td>76.4<sub>±6.7</sub></td><td>44.8<sub>±5.3</sub></td><td>62.8<sub>±3.7</sub></td><td>60.4<sub>±3.1</sub></td>
+                </tr>
+                <tr>
+                  <td class="system-name-indented">DPO-2+MBR</td>
+                  <td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td></td>
+                  <td>—</td><td>78.4<sub>±6.3</sub></td><td>44.8<sub>±5.8</sub></td><td>63.5<sub>±3.9</sub></td><td>61.2<sub>±3.3</sub></td>
+                </tr>
+                <tr class="ours-row">
+                  <td class="system-name">RFMT <b>(ours)</b></td>
+                  <td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td>
+                  <td>—</td><td>78.4<sub>±6.3</sub></td><td>44.8<sub>±5.8</sub></td><td>63.5<sub>±3.9</sub></td><td>61.2<sub>±3.3</sub></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4 class="title is-4">Key Findings</h4>
+          <div class="content has-text-justified">
+            <ul>
+              <li>
+                <b>SFT.</b>
+                Compared with Base, SFT decreased the English-to-Japanese score from 62.9 to 55.2, while increasing
+                the Simplified Chinese-to-Japanese score from 38.4 to 48.9.
+              </li>
+              <li>
+                <b>DPO Stage 1.</b>
+                Compared with SFT, DPO Stage 1 increased the scores by 17.0 points for English-to-Japanese and 12.6
+                points for Simplified Chinese-to-Japanese, reducing untranslated source content in the output.
+              </li>
+              <li>
+                <b>DPO Stage 2.</b>
+                The average scores changed little for both directions.
+                In a representative example, a translation containing an informal Kansai dialect and a mixture of
+                plain and polite forms was revised into a consistent polite style, increasing the score from 45 to 85.
+              </li>
+              <li>
+                <b>MBR decoding.</b>
+                MBR decoding resulted in little change in average scores but produced a substantial local improvement:
+                “Need this to work” changed from “これに期待” to “稼働させないと,” increasing the score from 50 to 95.
+              </li>
+              <li>
+                <b>FIM post-editing.</b>
+                FIM post-editing was applied to only four English-to-Japanese samples; the score increased for three
+                and remained unchanged for one. No FIM post-editing was applied to Simplified Chinese-to-Japanese
+                samples.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BibTeX -->
+  <section class="section" id="BibTeX">
+    <div class="container is-max-desktop content">
+      <h2 class="title">BibTeX</h2>
+      <p>Coming soon.</p>
+    </div>
+  </section>
+
+  <!-- Acknowledgement -->
+  <section class="section" id="Acknowledgement">
+    <div class="container is-max-desktop content">
+      <h2 class="title">Acknowledgement</h2>
+      <p>
+        This website is adapted from
+        <a href="https://github.com/nerfies/nerfies.github.io" target="_blank" rel="noreferrer">Nerfies</a>,
+        licensed under a
+        <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+      </p>
+    </div>
+  </section>
+  <script src="cajala-examples.js"></script>
+</body>
+
+</html>
